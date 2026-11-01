@@ -160,6 +160,15 @@ docker compose down
 
 The Compose file supplies `DATABASE_URL` to the app container, but the calculator currently does not read from or write to PostgreSQL; the SQL examples are run directly against the database. These default credentials are for local development only; change them before using the stack in a shared or production environment.
 
+### CI image publishing
+
+The GitHub Actions deploy job pushes the image to Docker Hub and uses the `production` environment. In the repository's **Settings > Environments > production** (or repository Actions secrets), configure:
+
+- `DOCKERHUB_USERNAME`: the Docker Hub account or organization username.
+- `DOCKERHUB_TOKEN`: a Docker Hub access token with permission to push to `av477/601_module9`.
+
+The deploy job checks that both secrets are present before attempting Docker Hub login.
+
 ### Build and run the application image alone
 
 To run only the app without PostgreSQL or pgAdmin:
