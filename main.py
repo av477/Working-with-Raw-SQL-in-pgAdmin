@@ -20,8 +20,8 @@ templates = Jinja2Templates(directory="templates")
 
 # Pydantic model for request data
 class OperationRequest(BaseModel):
-    a: float = Field(..., description="The first number")
-    b: float = Field(..., description="The second number")
+    a: float = Field(..., allow_inf_nan=False, description="The first number")
+    b: float = Field(..., allow_inf_nan=False, description="The second number")
 
     @field_validator('a', 'b')  # Correct decorator for Pydantic 1.x
     def validate_numbers(cls, value):

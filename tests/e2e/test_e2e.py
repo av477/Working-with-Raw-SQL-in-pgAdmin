@@ -1,6 +1,7 @@
 # tests/e2e/test_e2e.py
 
 import pytest  # Import the pytest framework for writing and running tests
+from playwright.sync_api import expect
 
 # The following decorators and functions define E2E tests for the FastAPI calculator application.
 
@@ -43,7 +44,35 @@ def test_calculator_add(page, fastapi_server):
     
     # Use an assertion to check that the text within the result div (with id 'result') is exactly "Result: 15".
     # This verifies that the addition operation was performed correctly and the result is displayed as expected.
-    assert page.inner_text('#result') == 'Result: 15'
+    expect(page.locator('#result')).to_have_text('Result: 15')
+
+
+@pytest.mark.e2e
+@pytest.mark.parametrize(
+    "operation, expected",
+    [
+        ("Subtract", "Result: 5"),
+        ("Multiply", "Result: 50"),
+        ("Divide", "Result: 5"),
+    ],
+)
+def test_calculator_other_operations(page, fastapi_server, operation, expected):
+    page.goto('http://localhost:8000')
+    page.fill('#a', '10')
+    page.fill('#b', '5' if operation != "Divide" else '2')
+    page.click(f'button:text("{operation}")')
+
+    expect(page.locator('#result')).to_have_text(expected)
+
+
+@pytest.mark.e2e
+def test_calculator_missing_input_shows_validation_error(page, fastapi_server):
+    page.goto('http://localhost:8000')
+    page.fill('#b', '5')
+    page.click('button:text("Add")')
+
+    expect(page.locator('#result')).to_contain_text('Error:')
+
 
 @pytest.mark.e2e
 def test_calculator_divide_by_zero(page, fastapi_server):
@@ -70,4 +99,4 @@ def test_calculator_divide_by_zero(page, fastapi_server):
     # Use an assertion to check that the text within the result div (with id 'result') is exactly
     # "Error: Cannot divide by zero!". This verifies that the application handles division by zero
     # gracefully and displays the correct error message to the user.
-    assert page.inner_text('#result') == 'Error: Cannot divide by zero!'
+    expect(page.locator('#result')).to_have_text('Error: Cannot divide by zero!')

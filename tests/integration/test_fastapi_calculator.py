@@ -152,3 +152,58 @@ def test_divide_by_zero_api(client):
     # Assert that the 'error' field contains the correct error message
     assert "Cannot divide by zero!" in response.json()['error'], \
         f"Expected error message 'Cannot divide by zero!', got '{response.json()['error']}'"
+
+
+@pytest.mark.parametrize(
+    "endpoint, payload, expected",
+    [
+        ("/add", {"a": -2.5, "b": 1.25}, -1.25),
+        ("/subtract", {"a": -2.5, "b": 1.25}, -3.75),
+        ("/multiply", {"a": -2.5, "b": 1.25}, -3.125),
+        ("/divide", {"a": -2.5, "b": 0.5}, -5.0),
+    ],
+)
+def test_api_accepts_negative_decimal_values(client, endpoint, payload, expected):
+    response = client.post(endpoint, json=payload)
+
+    assert response.status_code == 200
+    assert response.json() == {"result": expected}
+
+
+@pytest.mark.parametrize("endpoint", ["/add", "/subtract", "/multiply", "/divide"])
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {},
+        {"a": 1},
+        {"b": 1},
+        {"a": "not-a-number", "b": 1},
+        {"a": None, "b": 1},
+        {"a": "NaN", "b": 1},
+        {"a": "Infinity", "b": 1},
+    ],
+)
+def test_api_rejects_missing_or_invalid_numbers(client, endpoint, payload):
+    response = client.post(endpoint, json=payload)
+
+    assert response.status_code == 400
+    assert "error" in response.json()
+
+
+def test_api_rejects_malformed_json(client):
+    response = client.post(
+        "/add",
+        content="{",
+        headers={"Content-Type": "application/json"},
+    )
+
+    assert response.status_code == 400
+    assert "error" in response.json()
+
+
+def test_homepage_is_served(client):
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "<h1>Hello World</h1>" in response.text
