@@ -109,4 +109,4 @@ docker build -t fastapi-calculator .
 docker run --rm -p 8000:8000 fastapi-calculator
 ```
 
-Then open [http://localhost:8000](http://localhost:8000). The container health check requests the homepage using Python's standard library.
+Then open [http://localhost:8000](http://localhost:8000). The runtime image excludes pip and the host virtual environment; dependencies are installed during the image build. The container health check requests the homepage using Python's standard library.
