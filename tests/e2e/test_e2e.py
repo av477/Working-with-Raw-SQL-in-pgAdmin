@@ -45,6 +45,34 @@ def test_calculator_add(page, fastapi_server):
     # This verifies that the addition operation was performed correctly and the result is displayed as expected.
     assert page.inner_text('#result') == 'Result: 15'
 
+
+@pytest.mark.e2e
+@pytest.mark.parametrize(
+    "operation, expected",
+    [
+        ("Subtract", "Result: 5"),
+        ("Multiply", "Result: 50"),
+        ("Divide", "Result: 5"),
+    ],
+)
+def test_calculator_other_operations(page, fastapi_server, operation, expected):
+    page.goto('http://localhost:8000')
+    page.fill('#a', '10')
+    page.fill('#b', '5' if operation != "Divide" else '2')
+    page.click(f'button:text("{operation}")')
+
+    assert page.inner_text('#result') == expected
+
+
+@pytest.mark.e2e
+def test_calculator_missing_input_shows_validation_error(page, fastapi_server):
+    page.goto('http://localhost:8000')
+    page.fill('#b', '5')
+    page.click('button:text("Add")')
+
+    assert page.inner_text('#result').startswith('Error:')
+
+
 @pytest.mark.e2e
 def test_calculator_divide_by_zero(page, fastapi_server):
     """
